@@ -87,4 +87,88 @@ matrix resize_matrix(matrix m, int size)
     }
     m.rows = size;
     return m;
-}*/  
+}*/ 
+
+//matrix addition
+matrix mat_add(matrix a, matrix b){
+    /*check dimension of matrix if it's correct*/
+    if((a.cols != b.cols)||(a.rows != b.rows)){
+        perror("dimension not compatible for matrix addition");
+        exit(EXIT_FAILURE);
+    }
+    int rows = a.rows;
+    int cols = a.cols;
+    float **pointer = (float **)malloc(rows*sizeof(float*));
+
+    for(int i=0;i<rows;i++){
+        pointer[i] = (float*)malloc(4*sizeof(float));
+        for(int j=0;j<cols;j++){
+            pointer[i][j] = a.vals[i][j] + b.vals[i][j];
+        }
+    }
+    matrix m ={rows,cols,pointer};
+    return m;
+}
+
+//matrix multiplication
+matrix mat_mul(matrix a, matrix b){
+    /*check dimension of matrix if it's correct*/
+    if(a.cols != b.rows){
+        perror("dimension not compatible for matrix multiplication");
+        exit(EXIT_FAILURE);
+    }
+    int rows = a.rows;
+    int cols = b.cols;
+    float **pointer = (float **)malloc(rows*sizeof(float*));
+
+    for(int i=0;i<rows;i++){
+        pointer[i] = (float*)malloc(4*sizeof(float));
+        for(int j=0;j<cols;j++){
+            pointer[i][j] = 0;
+            for(int k=0;k<a.cols;k++){
+                pointer[i][j] += a.vals[i][k] * b.vals[k][j];
+            }
+        }
+    }
+    matrix m ={rows,cols,pointer};
+    return m;
+}
+
+//matrix substraction a-b
+matrix mat_sub(matrix a, matrix b){
+    /*check dimension of matrix if it's correct*/
+    if((a.cols != b.cols)||(a.rows != b.rows)){
+        perror("dimension not compatible for matrix addition");
+        exit(EXIT_FAILURE);
+    }
+    int rows = a.rows;
+    int cols = a.cols;
+    float **pointer = (float **)malloc(rows*sizeof(float*));
+
+    for(int i=0;i<rows;i++){
+        pointer[i] = (float*)malloc(4*sizeof(float));
+        for(int j=0;j<cols;j++){
+            pointer[i][j] = a.vals[i][j] - b.vals[i][j];
+        }
+    }
+    matrix m ={rows,cols,pointer};
+    return m;
+}
+
+//matrix scalar, scalar * a
+matrix mat_scal(matrix a, float scalar){
+    int rows = a.rows;
+    int cols = a.cols;
+    float **pointer = (float **)malloc(rows*sizeof(float*));
+
+    for(int i=0;i<rows;i++){
+        pointer[i] = (float*)malloc(4*sizeof(float));
+        for(int j=0;j<cols;j++){
+            pointer[i][j] = a.vals[i][j] * scalar;
+        }
+    }
+    matrix m ={rows,cols,pointer};
+    return m;
+}
+
+
