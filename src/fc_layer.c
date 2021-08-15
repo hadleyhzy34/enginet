@@ -36,7 +36,7 @@ fc_layer fc_layer_initialization(tensor input, int channels_in, int channels_out
     tensor output = {output_data, output_grad, channels_out, true};
 
     //debug
-    print_tensor(output);
+    // print_tensor(output);
     fc_layer l = {input,output,channels_in,channels_out,weights,bias,0.01};
     return l;
 }
@@ -44,12 +44,29 @@ fc_layer fc_layer_initialization(tensor input, int channels_in, int channels_out
 void forward_fc_layer(fc_layer l){
     //fc layer forward operation
     int i,j;
-    for(i=0;i<l.channels_in;i++){
-        for(j=0;j<l.channels_out;j++){
-            l.output.data[j] = l.output.data[j] + l.input.data[i] * l.weights[i*l.channels_out+j] + l.bias[j];
-            // printf("current l output is: %15.7f,%15.7f,%15.7f\n",l.input.data[i],l.weights[i*l.channels_in+j],l.output.data[j]);
+    // for(i=0;i<l.channels_in;i++){
+    //     for(j=0;j<l.channels_out;j++){
+    //         l.output.data[j] = l.output.data[j] + l.input.data[i] * l.weights[i*l.channels_out+j];
+    //         // printf("current l output is: %15.7f,%15.7f,%15.7f\n",l.input.data[i],l.weights[i*l.channels_in+j],l.output.data[j]);
+    //     }
+    //     l.output.data[j] += l.bias[j];
+    // }
+
+    printf("layer weights data is: \n");
+    for(int i=0;i<l.channels_in*l.channels_out;i++){
+        printf("%15.7f ",l.weights[i]);
+    }
+    printf("\n");
+    for(j=0;j<l.channels_out;j++){
+        l.output.data[j] += l.bias[j];
+        for(i=0;i<l.channels_in;i++){
+            l.output.data[j] += l.input.data[i] * l.weights[i*l.channels_out+j];
+            // printf("i: %d, j: %d, l.input: %f, l.weights: %f, l.output: %f\n", i,j,l.input.data[i],l.weights[i*l.channels_out+j],l.output.data[j]);
         }
     }
+    printf("tensor gradients for output is: \n");
+    print_tensor(l.output);
+    printf("\n");
 }
 
 void backward_fc_layer(fc_layer l){
@@ -64,6 +81,10 @@ void backward_fc_layer(fc_layer l){
         }
     }
 
+    printf("tensor gradients for output is: \n");
+    print_tensor(l.output);
+    printf("\n");
+
     //update gradients of weights
     int rows,cols;
     for(i=0;i<l.channels_in*l.channels_out;i++){
@@ -71,6 +92,12 @@ void backward_fc_layer(fc_layer l){
         cols = i%l.channels_out; //index of y
         l.weights[i] = l.weights[i] - l.lr*l.output.grad[cols]*l.input.data[rows];
     }
+
+    printf("layer weights data after update is: \n");
+    for(int i=0;i<l.channels_in*l.channels_out;i++){
+        printf("%15.7f ",l.weights[i]);
+    }
+    printf("\n");
 
     //update gradients of bias
     for(i=0;i<l.channels_out;i++){

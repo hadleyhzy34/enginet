@@ -15,6 +15,8 @@ float mean_square_error(tensor output, tensor label){
 
 void zero_grad_mse(tensor output){
     for(int i=0;i<output.size;i++){
-        output.grad[i] = 0.0;
+        output.grad[i] = 0.0;  //reset gradients of tensor
+        output.data[i] = 0.0;  //reset values of tensor
     }
 }
+
