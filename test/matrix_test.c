@@ -3,6 +3,7 @@
 #include "enginet.h"
 
 #define LR 0.01
+#define EPOCHS 10
 
 int main(){
     printf("this is just a test\n");
@@ -51,28 +52,34 @@ int main(){
     print_matrix(m6);
     print_matrix(m7);
 
-// /* 2d matrix */
+// //tensor struct
 // typedef struct{
-//     int rows,cols;
-//     float **vals;
-// } matrix;
-
-// /*tensor*/
-// typedef struct{
-//     matrix grad;
+//     float *data; //tensor data
+//     float *grad; //gradients, alpha(loss)/ahpha(x)
+//     int size;
 //     bool requires_grad;
-//     bool is_leaf;
-//     matrix m;
-// } tensor;
+// }tensor;
 
-    tensor test = {{}, false, false, m1};
-    tensor tensor_test = {{}, false, false, m4};
+    float *v1 = (float *)calloc(12,sizeof(float));
+    float *v2 = (float *)calloc(12,sizeof(float));
+    float *v3 = (float *)calloc(24,sizeof(float));
+    float *v4 = (float *)calloc(24,sizeof(float));
+    float *v5 = (float *)calloc(24,sizeof(float));
+    for(int i=0;i<24;i++){
+        v3[i] = (float)i;
+        v5[i] = 1.0;
+    }
+    
+    tensor t1 = {v1, v2, 12, true};
+    tensor t2 = {v3, v4, 24, true};
+    tensor t_label = {v5, v2, 24, true};
 
     // m = resize_matrix(m,2,6);
     // print_matrix(m);
 
     // printf("current tensor matrix is: \n");
-    print_tensor(tensor_test);
+    print_tensor(t1);
+    print_tensor(t2);
 
 // /*fc_layer*/
 // typedef struct{
@@ -85,10 +92,59 @@ int main(){
 //     float lr;  //learning rate for updating fc layer
 // } fc_layer;
 
-    //tensor input
-    tensor tensor_in = {{},false, false, m1};
     //layer initialization
-    fc_layer l1 = {tensor_in, {}, {}, {}, LR};
+    fc_layer l1 = fc_layer_initialization(t2, 24, 24);
+    printf("layer output data is: \n");
+    print_tensor(l1.output);
 
-    forward_fc_layer(l1);
+    printf("layer weights data is: \n");
+    for(int i=0;i<l1.channels_in*l1.channels_out;i++){
+        printf("%15.7f ",l1.weights[i]);
+    }
+    printf("\n");
+
+    // //forward fc layer
+    // forward_fc_layer(l1);
+    // printf("layer output data after forward operation is: \n");
+    // print_tensor(l1.output);
+
+
+    // float loss = 0.0;
+    // loss += mean_square_error(l1.output,t_label);
+    // printf("current loss is: %15.7f\n", loss);
+    // printf("layer output data after loss calculation is: \n");
+    // print_tensor(l1.output);
+
+    // //backward fc layer
+    // backward_fc_layer(l1);
+    // printf("layer output data after backward operation is: \n");
+    // print_tensor(l1.input);
+
+    // printf("layer weights data is: \n");
+    // for(int i=0;i<l1.channels_in*l1.channels_out;i++){
+    //     printf("%15.7f ",l1.weights[i]);
+    // }
+    // printf("\n");
+
+    // printf("layer bias data is: \n");
+    // for(int i=0;i<l1.channels_out;i++){
+    //     printf("%15.7f ",l1.bias[i]);
+    // }
+    // printf("\n");
+
+    float loss = 0.0;
+    //training process
+    for(int i=0;i<EPOCHS;i++){
+        //forward operation
+        forward_fc_layer(l1);
+        loss = mean_square_error(l1.output,t_label);
+        printf("current epochs %d, loss: %f\n", i, loss);
+
+        //backward operation
+        backward_fc_layer(l1);
+
+        //zero grad
+        zero_grad_mse(l1.output);
+        zero_grad_fc_layer(l1);
+    }
 }

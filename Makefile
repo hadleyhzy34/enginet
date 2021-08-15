@@ -59,7 +59,7 @@ CFLAGS+= -DCUDNN
 LDFLAGS+= -lcudnn
 endif
 
-OBJ=matrix.o tensor.o fc_layer.o
+OBJ=matrix.o tensor.o fc_layer.o mse.o
 EXECOBJA=matrix_test.o
 ifeq ($(GPU), 1) 
 LDFLAGS+= -lstdc++ 

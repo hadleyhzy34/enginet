@@ -3,28 +3,42 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+/*vector, flatten matrix */
+typedef struct{
+    int rows,cols;
+    float *vals;
+}vector;
+
 /* 2d matrix */
 typedef struct{
     int rows,cols;
     float **vals;
 } matrix;
 
-/*tensor*/
+// /*tensor*/
+// typedef struct{
+//     matrix grad;
+//     bool requires_grad;
+//     bool is_leaf;
+//     matrix m;
+// } tensor;
+
+//tensor struct
 typedef struct{
-    matrix grad;
+    float *data; //tensor data
+    float *grad; //gradients, alpha(loss)/ahpha(x)
+    int size;
     bool requires_grad;
-    bool is_leaf;
-    matrix m;
-} tensor;
+}tensor;
 
 /*fc_layer*/
 typedef struct{
     tensor input;  //input data
     tensor output;  //output data
-    int channels_in;
-    int channels_out;
-    tensor weights;  //fc layer weights
-    tensor bias;  // fc layer bias
+    int channels_in;  //input size
+    int channels_out;  //output size
+    float *weights;  //fc layer weights
+    float *bias; //fc layer bias
     float lr;  //learning rate for updating fc layer
 } fc_layer;
 
@@ -48,7 +62,13 @@ matrix mat_scal(matrix a, float scalar);
 void print_tensor(tensor t);
 
 /*layer function*/
+fc_layer fc_layer_initialization(tensor input, int channels_in, int channels_out);
 void forward_fc_layer(fc_layer l);
 void backward_fc_layer(fc_layer l);
+void zero_grad_fc_layer(fc_layer l);
+
+/*loss function*/
+float mean_square_error(tensor output, tensor label);
+void zero_grad_mse(tensor output);
 
 #endif
