@@ -25,10 +25,10 @@ fc_layer fc_layer_initialization(tensor input, int channels_in, int channels_out
     /*------------------------weights initialization----------------------------*/
     float *weights = (float *)malloc(channels_in*channels_out*sizeof(float));
     for(int i = 0; i < channels_in * channels_out; i++){
-        weights[i] = ((float)rand()/RAND_MAX * 2) - 1;
+        weights[i] = ((float)rand()/RAND_MAX * 2) - 1;  //size:channels_in * channels_out
     }
     /*---------------------------bias initialization----------------------------*/
-    float *bias = (float*)calloc(channels_out,sizeof(float));
+    float *bias = (float*)calloc(channels_out,sizeof(float)); //size: channels_out * 1
 
     /*---------------------output tensor initialization-------------------------*/
     float *output_data = (float*)calloc(channels_out,sizeof(float));
@@ -37,26 +37,19 @@ fc_layer fc_layer_initialization(tensor input, int channels_in, int channels_out
 
     //debug
     // print_tensor(output);
-    fc_layer l = {input,output,channels_in,channels_out,weights,bias,0.01};
+    // fc_layer l = {output, channels_in, channels_out, weights, bias, 0.01};
+    fc_layer l = {input,output,channels_in,channels_out,weights,bias,0.0001};
     return l;
 }
 
 void forward_fc_layer(fc_layer l){
     //fc layer forward operation
     int i,j;
-    // for(i=0;i<l.channels_in;i++){
-    //     for(j=0;j<l.channels_out;j++){
-    //         l.output.data[j] = l.output.data[j] + l.input.data[i] * l.weights[i*l.channels_out+j];
-    //         // printf("current l output is: %15.7f,%15.7f,%15.7f\n",l.input.data[i],l.weights[i*l.channels_in+j],l.output.data[j]);
-    //     }
-    //     l.output.data[j] += l.bias[j];
+    // printf("layer weights data is: \n");
+    // for(int i=0;i<l.channels_in*l.channels_out;i++){
+    //     printf("%15.7f ",l.weights[i]);
     // }
-
-    printf("layer weights data is: \n");
-    for(int i=0;i<l.channels_in*l.channels_out;i++){
-        printf("%15.7f ",l.weights[i]);
-    }
-    printf("\n");
+    // printf("\n");
     for(j=0;j<l.channels_out;j++){
         l.output.data[j] += l.bias[j];
         for(i=0;i<l.channels_in;i++){
@@ -64,9 +57,9 @@ void forward_fc_layer(fc_layer l){
             // printf("i: %d, j: %d, l.input: %f, l.weights: %f, l.output: %f\n", i,j,l.input.data[i],l.weights[i*l.channels_out+j],l.output.data[j]);
         }
     }
-    printf("tensor gradients for output is: \n");
-    print_tensor(l.output);
-    printf("\n");
+    // printf("tensor gradients for output is: \n");
+    // print_tensor(l.output);
+    // printf("\n");
 }
 
 void backward_fc_layer(fc_layer l){
@@ -81,9 +74,9 @@ void backward_fc_layer(fc_layer l){
         }
     }
 
-    printf("tensor gradients for output is: \n");
-    print_tensor(l.output);
-    printf("\n");
+    // printf("tensor gradients for output is: \n");
+    // print_tensor(l.output);
+    // printf("\n");
 
     //update gradients of weights
     int rows,cols;
@@ -93,11 +86,11 @@ void backward_fc_layer(fc_layer l){
         l.weights[i] = l.weights[i] - l.lr*l.output.grad[cols]*l.input.data[rows];
     }
 
-    printf("layer weights data after update is: \n");
-    for(int i=0;i<l.channels_in*l.channels_out;i++){
-        printf("%15.7f ",l.weights[i]);
-    }
-    printf("\n");
+    // printf("layer weights data after update is: \n");
+    // for(int i=0;i<l.channels_in*l.channels_out;i++){
+    //     printf("%15.7f ",l.weights[i]);
+    // }
+    // printf("\n");
 
     //update gradients of bias
     for(i=0;i<l.channels_out;i++){
@@ -107,8 +100,17 @@ void backward_fc_layer(fc_layer l){
 
 //set gradients of input of this layer to be zero, in order for next episodic training
 void zero_grad_fc_layer(fc_layer l){
-    for(int i=0;i<l.input.size;i++){
-        l.input.grad[i] = 0.0;
+    // for(int i=0;i<l.input.size;i++){
+    //     l.input.grad[i] = 0.0;
+    // }
+    // //reset output data
+    // for(int i=0;i<l.output.size;i++){
+    //     l.output.data[i] = 0.0;
+    // }
+    //reset layer output data and gradients
+    for(int i=0;i<l.output.size;i++){
+        l.output.data[i] = 0.0;
+        l.output.grad[i] = 0.0;
     }
 }
 

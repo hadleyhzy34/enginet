@@ -49,6 +49,38 @@ void forward_fc_layer(fc_layer l);
 void backward_fc_layer(fc_layer l);
 void zero_grad_fc_layer(fc_layer l);
 
+// /*--------------------------------fc_layer_v1-------------------------------*/
+// //enum current all possible actions for computational graph
+// typedef enum{ADD,FC,RELU,TANH}OPS;
+
+// //fc layer node inside computational graph
+// typedef struct{
+//     tensor input;
+//     tensor output;
+//     OPS ops;
+//     Node *next;
+// }Node;
+
+// //full connection layer definition
+// typedef struct{
+//     // tensor input;  //input data
+//     // tensor output;  //output data
+//     int channels_in;  //input size
+//     int channels_out;  //output size
+//     float *weights;  //fc layer weights
+//     float *bias; //fc layer bias
+//     float lr;  //learning rate for updating fc layer
+//     Node fc_node; //computational graph node for fc layer
+// } fc_layer;
+
+
+
+// //fc layer function
+// fc_layer fc_layer_initialization(tensor input, int channels_in, int channels_out);
+// void forward_fc_layer(fc_layer l);
+// void backward_fc_layer(fc_layer l);
+// void zero_grad_fc_layer(fc_layer l);
+
 /*--------------------------------activation-------------------------------*/
 //activation definition
 typedef enum{RELU, TANH}ACTIVATION;
@@ -57,10 +89,25 @@ typedef enum{RELU, TANH}ACTIVATION;
 ACTIVATION get_activation(char *s);
 float activate(float x, ACTIVATION a);
 void activate_array(float *x, const int size, const ACTIVATION a);
+void activate_tensor(tensor input, tensor output, ACTIVATION a);
 float activate_gradient(float x, ACTIVATION a);
 void activate_gradient_array(const float *x, const int size, const ACTIVATION a, float *delta);
 
-/*network*/
+//activation layer definition
+typedef struct{
+    tensor input;  //input data
+    tensor output;  //output data
+    ACTIVATION a; //activation enum
+    float lr;  //learning rate for updating fc layer
+} ac_layer;
+
+ac_layer ac_layer_initialization(tensor input, ACTIVATION a);
+void forward_ac_layer(ac_layer l);
+void backward_ac_layer(ac_layer l);
+void zero_grad_ac_layer(ac_layer l);
+
+
+/*----------------------------network-------------------------------*/
 typedef struct{
     fc_layer ** layers;
 }network;

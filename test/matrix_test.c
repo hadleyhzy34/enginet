@@ -3,7 +3,7 @@
 #include "enginet.h"
 
 #define LR 0.01
-#define EPOCHS 10
+#define EPOCHS 20
 
 int main(){
     printf("this is just a test\n");
@@ -88,10 +88,10 @@ int main(){
     
     tensor t1 = {v1, v2, 12, true};
     tensor t_input_0 = {v3, v4, 24, true};      //input tensor 0
-    tensor t_input_1 = {v9, v10,3,  true};      //input tensor 1
+    tensor t_input_1 = {v9, v10,3,  true};      //input tensor 1 value:{1,2,3} gradients{0,0,0}
     tensor t_label_0 = {v5, v6, 24, true};      //label tensor 0
     tensor t_label_1 = {v7, v8, 24, true};      //label tensor 1
-    tensor t_label_2 = {v11,v12,3,  true};      //label tensor 2 
+    tensor t_label_2 = {v11,v12,3,  true};      //label tensor 2 label:{2,4,6} gradients{0,0,0}
 
     // m = resize_matrix(m,2,6);
     // print_matrix(m);
@@ -180,4 +180,17 @@ int main(){
         // printf("\n");
         // print_tensor(l1.output);
     }
+    printf("----evaluation----\n");
+    forward_fc_layer(l1);
+    printf("---output of fc layer is: ----\n");
+    print_tensor(l1.output);
+    printf("----fc layer parameters are: ----\n");
+    for(int i=0;i<l1.channels_in*l1.channels_out;i++){
+        printf("%15.7f ",l1.weights[i]);
+    }
+    printf("\n---fc layer bias updated value are:\n");
+    for(int j=0;j<l1.channels_out;j++){
+        printf("%15.7f ", l1.bias[j]);
+    }
+    printf("\n");
 }
