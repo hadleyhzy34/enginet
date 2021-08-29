@@ -13,3 +13,7 @@ lightweight yet powerful open source library for deep learning, especially used 
 ### Dataset Handling
 - [] read MNIST dataset
 - [] read Image data
+
+### Cuda
+- [] FC layer
+- [] 2D Conv Layer
