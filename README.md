@@ -6,9 +6,9 @@ lightweight yet powerful open source library for deep learning, especially used 
 ## To do list
 ### Basic Structure
 - [x] Mini-Batch Processing
-- [] BatchNorm Layer
-- [] Dropout Layer
-- [] 2D Conv Layer
+- [x] BatchNorm Layer
+- [x] Dropout Layer
+- [x] 2D Conv Layer
 - [] Pooling Layer
 
 ### Dataset Handling
