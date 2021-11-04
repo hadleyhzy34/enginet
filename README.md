@@ -1,12 +1,11 @@
 # enginet
 lightweight yet powerful open source library for deep learning, especially used in robotics area
 
-![example workflow](https://github.com/<OWNER>/<REPOSITORY>/actions/workflows/<WORKFLOW_FILE>/badge.svg)
+![example workflow](https://github.com/hadleyhzy34/enginet/actions/workflows/c-cpp.yml/badge.svg)
 
 ## To do list
 ### Basic Structure
 - [x] Mini-Batch Processing
-- [] SGD
 - [] BatchNorm Layer
 - [] Dropout Layer
 - [] 2D Conv Layer
