@@ -9,6 +9,8 @@
 ACTIVATION get_activation(char *s);
 float activate(float x, ACTIVATION a);
 void activate_array(float *x, const int n, const ACTIVATION a);
+void activate_tensor(tensor input, tensor output, ACTIVATION a);
+
 float activate_gradient(float x, ACTIVATION a);
 void activate_gradient_array(const float *x, const int n, const ACTIVATION a, float *delta);
 

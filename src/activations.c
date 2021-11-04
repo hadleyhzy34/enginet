@@ -32,6 +32,17 @@ void activate_array(float *x, const int n, const ACTIVATION a)
     }
 }
 
+void activate_tensor(tensor input, tensor output, ACTIVATION a){
+    if(input.size != output.size){
+        perror("dimension not compatible for matrix activation");
+        exit(EXIT_FAILURE);
+    }
+    unsigned int i;
+    for(i = 0; i < input.size; i++){
+        output.data[i] = activate(input.data[i], a);
+    }
+}
+
 float activate_gradient(float x, ACTIVATION a)
 {
     switch(a){

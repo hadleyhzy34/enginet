@@ -59,8 +59,8 @@ CFLAGS+= -DCUDNN
 LDFLAGS+= -lcudnn
 endif
 
-OBJ=matrix.o tensor.o fc_layer.o mse.o activations.o
-EXECOBJA=matrix_test.o
+OBJ=matrix.o tensor.o fc_layer.o mse.o activations.o ac_layer.o bn_layer.o
+EXECOBJA=fc_batch_test.o
 ifeq ($(GPU), 1) 
 LDFLAGS+= -lstdc++ 
 OBJ+=convolutional_kernels.o deconvolutional_kernels.o activation_kernels.o im2col_kernels.o col2im_kernels.o blas_kernels.o crop_layer_kernels.o dropout_layer_kernels.o maxpool_layer_kernels.o avgpool_layer_kernels.o

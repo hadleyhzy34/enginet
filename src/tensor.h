@@ -6,5 +6,6 @@
 
 
 void print_tensor(tensor t);
+tensor tensor_initialization(unsigned int size, bool requires_grad);
 
 #endif

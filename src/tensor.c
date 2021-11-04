@@ -11,7 +11,12 @@
 //     int size;
 //     bool requires_grad;
 // }tensor;
-
+tensor tensor_initialization(unsigned int size, bool requires_grad){
+    float *data = (float *)calloc(size, sizeof(float));
+    float *grad = (float *)calloc(size, sizeof(float));
+    tensor t = {data, grad, size, requires_grad};
+    return t;
+}
 
 void print_tensor(tensor t)
 {

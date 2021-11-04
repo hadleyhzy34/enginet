@@ -4,11 +4,13 @@
 #include "matrix.h"
 #include "tensor.h"
 
-float mean_square_error(tensor output, tensor label){
+float mean_square_error(const unsigned int batch_size, tensor *output, tensor *label){
     float loss=0.0;
-    for(int i=0;i<output.size;i++){
-        loss += (output.data[i] - label.data[i])*(output.data[i] - label.data[i]);
-        output.grad[i] += 2*(output.data[i] - label.data[i]);
+    for(int k = 0; k < batch_size; k++){
+        for(int i = 0; i < output[i].size; i++){
+            loss += (output[k].data[i] - label[k].data[i]) * (output[k].data[i] - label[k].data[i]);
+            output[k].grad[i] += 2*(output[k].data[i] - label[k].data[i]);
+        }
     }
     return loss;
 }
