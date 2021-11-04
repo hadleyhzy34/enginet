@@ -31,7 +31,7 @@ typedef struct{
     bool requires_grad;
 }tensor;
 
-/*--------------------------------fc_layer-------------------------------*/
+/*----------------------------------------fc_layer--------------------------------------*/
 //full connection layer definition
 typedef struct{
     tensor input;  //input data
@@ -49,7 +49,7 @@ void forward_fc_layer(fc_layer l);
 void backward_fc_layer(fc_layer l);
 void zero_grad_fc_layer(fc_layer l);
 
-/*--------------------------------activation-------------------------------*/
+/*---------------------------------------activation-------------------------------------*/
 //activation definition
 typedef enum{RELU, TANH}ACTIVATION;
 
@@ -59,6 +59,14 @@ float activate(float x, ACTIVATION a);
 void activate_array(float *x, const int size, const ACTIVATION a);
 float activate_gradient(float x, ACTIVATION a);
 void activate_gradient_array(const float *x, const int size, const ACTIVATION a, float *delta);
+
+//activation layer definition
+typedef struct{
+    tensor input;
+    tensor output;
+    float *weights;
+    float lr;
+} act_layer;
 
 /*network*/
 typedef struct{

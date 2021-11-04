@@ -49,4 +49,4 @@ void activate_gradient_array(const float *x, const int n, const ACTIVATION a, fl
     for(i = 0; i < n; ++i){
         delta[i] *= activate_gradient(x[i], a);
     }
-} 
+}
