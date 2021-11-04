@@ -1,6 +1,8 @@
 # enginet
 lightweight yet powerful open source library for deep learning, especially used in robotics area
 
+![example workflow](https://github.com/<OWNER>/<REPOSITORY>/actions/workflows/<WORKFLOW_FILE>/badge.svg)
+
 ## To do list
 ### Basic Structure
 - [x] Mini-Batch Processing
