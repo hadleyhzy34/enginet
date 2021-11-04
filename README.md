@@ -2,6 +2,8 @@
 lightweight yet powerful open source library for deep learning, especially used in robotics area
 
 ![example workflow](https://github.com/hadleyhzy34/enginet/actions/workflows/c-cpp.yml/badge.svg)
+[![](https://dxssrr2j0sq4w.cloudfront.net/3.2.0/img/external/zenhub-badge.png)](https://app.zenhub.com/workspaces/sfn-client-5cbedb54074dff0857634473/board?repos=110595899)
+
 
 ## To do list
 ### Basic Structure
