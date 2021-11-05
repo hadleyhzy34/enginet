@@ -1,22 +1,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "matrix.h"
 #include "tensor.h"
 
-// //tensor struct
-// typedef struct{
-//     float *data; //tensor data
-//     float *grad; //gradients, alpha(loss)/ahpha(x)
-//     int size;
-//     bool requires_grad;
-// }tensor;
 tensor tensor_initialization(unsigned int size, bool requires_grad){
     float *data = (float *)calloc(size, sizeof(float));
     float *grad = (float *)calloc(size, sizeof(float));
     tensor t = {data, grad, size, requires_grad};
     return t;
 }
+
+tensor tensor_zeros(u_int32_t *shape, u_int32_t dim){
+    u_int32_t size = 0;
+    int i=0;
+    for(i=0;i<dim;i++){
+        size += shape[dim];
+    }
+    float *data = (float *)calloc(size, sizeof(float));
+    float *grad = (float *)calloc(size, sizeof(float));
+    bool requires_grad = true;
+    return {data,grad,shape,dim,requires_grad};
+}
+
 
 void print_tensor(tensor t)
 {

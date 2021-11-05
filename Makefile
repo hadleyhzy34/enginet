@@ -13,7 +13,7 @@ ARCH= -gencode arch=compute_30,code=sm_30 \
 # This is what I use, uncomment if you know your arch and want to specify
 # ARCH= -gencode arch=compute_52,code=compute_52
 
-VPATH=./src/:./test
+VPATH=./src/:./src/core/:./test
 LIB = ./lib/
 SLIB=$(LIB)libenginet.so
 ALIB=$(LIB)libenginet.a
@@ -27,7 +27,7 @@ AR=ar
 ARFLAGS=rcs
 OPTS=-Ofast
 LDFLAGS= -lm -pthread 
-COMMON= -Iinclude/ -Isrc/
+COMMON= -Iinclude/ -Isrc/ -Isrc/core/
 CFLAGS=-Wall -Wno-unused-result -Wno-unknown-pragmas -Wfatal-errors -fPIC
 
 ifeq ($(OPENMP), 1) 
@@ -59,8 +59,10 @@ CFLAGS+= -DCUDNN
 LDFLAGS+= -lcudnn
 endif
 
-OBJ=matrix.o tensor.o fc_layer.o mse.o activations.o ac_layer.o bn_layer.o
-EXECOBJA=fc_batch_test.o
+# OBJ=matrix.o tensor.o fc_layer.o mse.o activations.o ac_layer.o bn_layer.o
+OBJ = 
+OBJ_CORE = tensor.o
+EXECOBJA=tensor_test.o
 ifeq ($(GPU), 1) 
 LDFLAGS+= -lstdc++ 
 OBJ+=convolutional_kernels.o deconvolutional_kernels.o activation_kernels.o im2col_kernels.o col2im_kernels.o blas_kernels.o crop_layer_kernels.o dropout_layer_kernels.o maxpool_layer_kernels.o avgpool_layer_kernels.o
@@ -68,7 +70,9 @@ endif
 
 EXECOBJ = $(addprefix $(OBJDIR), $(EXECOBJA))
 OBJS = $(addprefix $(OBJDIR), $(OBJ))
+OBJS_CORE = $(addprefix $(OBJDIR), $(OBJ_CORE))
 DEPS = $(wildcard src/*.h) Makefile include/enginet.h
+DEPS_CORE = $(wildcard src/core/*.h) Makefile include/enginet.h
 
 all: obj $(SLIB) $(ALIB) $(EXEC)
 
@@ -76,14 +80,17 @@ all: obj $(SLIB) $(ALIB) $(EXEC)
 $(EXEC): $(EXECOBJ) $(ALIB)
 	$(CC) $(COMMON) $(CFLAGS) $^ -o $@ $(LDFLAGS) $(ALIB)
 
-$(ALIB): $(OBJS)
+$(ALIB): $(OBJS) $(OBJS_CORE)
 	$(AR) $(ARFLAGS) $@ $^
 
-$(SLIB): $(OBJS)
+$(SLIB): $(OBJS) $(OBJS_CORE)
 	$(CC) $(CFLAGS) -shared $^ -o $@ $(LDFLAGS)
 
 $(OBJDIR)%.o: %.cpp $(DEPS)
 	$(CPP) $(COMMON) $(CFLAGS) -c $< -o $@
+
+$(OBJDIR)%.o: %.c $(DEPS_CORE)
+	$(CC) $(COMMON) $(CFLAGS) -c $< -o $@
 
 $(OBJDIR)%.o: %.c $(DEPS)
 	$(CC) $(COMMON) $(CFLAGS) -c $< -o $@
