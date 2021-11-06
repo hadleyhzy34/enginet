@@ -4,6 +4,7 @@
 #include "matrix.h"
 #include "tensor.h"
 #include "fc_layer.h"
+#include "core/gemm.h"
 
 /*Generate new struct full connection layer
  *batch_size
@@ -12,52 +13,21 @@
  *out_channels: output dimension
  *return: struct fc_layer
 */
-fc_layer fc_layer_initialization(const unsigned int batch_size, tensor *input, int in_channels, int out_channels){
-    int i;
-    //check each sample if dimension matched
-    for(i = 0; i < batch_size; i++){
-        if(input[i].size != in_channels){
-            // printf("current input size is: %d, in_channels: %d, out_channels: %d\n", input[i].size, in_channels, out_channels);
-            perror("Dimension of input tensor not compatible for matrix addition");
-            exit(EXIT_FAILURE);
-        }
-    }
-    float *weights = (float *)malloc(in_channels * out_channels * sizeof(float));   /*weight initialization*/
 
-    for(i = 0; i < in_channels * out_channels; i++){
-        weights[i] = ((float)rand()/RAND_MAX * 2) - 1;  /*size:in_channels * out_channels*/
-    }
-    float *bias = (float*)calloc(out_channels,sizeof(float)); /*bias initialization, size:out_channels*/
-    tensor *output = (tensor*)malloc(batch_size*sizeof(tensor)); /*output batch memory space created*/
-    for(i = 0; i < batch_size; i++){
-        output[i] = tensor_initialization(out_channels, true);
-    }
-    fc_layer l = {input, output, batch_size, in_channels, out_channels, weights, bias}; /*fc_layer created*/
+fc_layer fc(size_t in_channels, size_t out_channels){
+    fc_layer l;
+    l.weights = (float* )calloc(in_channels*out_channels,sizeof(float));
+    l.bias = (float* )calloc(out_channels,sizeof(float));
     return l;
 }
 
-
-void forward_fc_layer(fc_layer l){
-    int i,j,k;
-    for(k = 0; k < l.batch_size; k++){                  /*loop through each sample inside batch*/
-        for(j = 0; j < l.out_channels; j++){            /*loop through each output dimension*/
-            l.output[k].data[j] += l.bias[j];
-            // printf("current batch: %d, l.output[k].data[j] is: %f", k, l.output[k].data[j]);
-            for(i = 0; i < l.in_channels; i++){         /*loop through each input dimension*/
-                l.output[k].data[j] += l.input[k].data[i] * l.weights[i*l.out_channels+j];
-            }
-        }
+void forward_fc(tensor *input, fc_layer l, struct graph_node parent){
+    struct graph_node cur;
+    cur.parent = parent;
+    l.output = tensor_zeros(input.shape,2);
+    for(int i=0;i<input.shape[0];i++){
+        l.output[i*l.out_channels] = gemm(0,1,input.shape[1],)
     }
-    // for(j=0;j<l.channels_out;j++){
-    //     l.output.data[j] += l.bias[j];
-    //     for(i=0;i<l.channels_in;i++){
-    //         l.output.data[j] += l.input.data[i] * l.weights[i*l.channels_out+j];
-    //         // printf("i: %d, j: %d, l.input: %f, l.weights: %f, l.output: %f\n", i,j,l.input.data[i],l.weights[i*l.channels_out+j],l.output.data[j]);
-    //     }
-    // }
-    // printf("tensor gradients for output is: \n");
-    // print_tensor(l.output);
-    // printf("\n");
 }
 
 void backward_fc_layer(fc_layer l){

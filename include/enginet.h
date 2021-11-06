@@ -26,17 +26,42 @@ void reshape_tensor(tensor *t, int* n_shape, size_t dim);
 /*tensor visualization*/
 void print_tensor(tensor t);
 
+/*------------------gemm--------------------*/
+void gemm(int TA, int TB, int M, int N, int K, float Alpha,
+        float *A, int lda,
+        float *B, int ldb,
+        float Beta,
+        float *C, int ldc);
+
+void gemm_nt(int M, int N, int K, float Alpha,
+        float *A, int lda,
+        float *B, int ldb,
+        float *C, int ldc);
 
 /*--------------computation graph-----------*/
-typedef enum{ADD, FC, Conv2d}grad_func;
+typedef struct graph_node;
 
-typedef struct{
-    grad_func grad_fn;
-    tensor *weights_grad;
-    tensor *bias_grad;
-    tensor *grads;
-    struct graph_node *next;
-    struct graph_ndoe *previous;
+struct{
+    //tensor *input;
+    //tensor *output;
+    void (*grad_fn)(tensor *input, tensor *output);
+    graph_node *parent;
 }graph_node;
+
+
+/*---------------fc layer------------------*/
+typedef struct{
+    //tensor *input;
+    tensor *output;
+    float *weights;
+    float *bias;
+    size_t in_channels;
+    size_t out_channels;
+    void (*foward)(tensor *input);
+}fc_layer;
+
+fc_layer fc(size_t in_channels, size_t out_channels); //initialize fc layer
+void forward_fc(fc_layer l, struct graph_node parent); //forward pass
+void backward_fc(fc_layer l); //backward pass
 
 #endif
