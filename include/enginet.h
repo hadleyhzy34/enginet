@@ -39,6 +39,7 @@ void gemm_nt(int M, int N, int K, float Alpha,
         float *C, int ldc);
 
 /*--------------computation graph-----------*/
+/*
 typedef struct graph_node;
 
 struct{
@@ -47,7 +48,7 @@ struct{
     void (*grad_fn)(tensor *input, tensor *output);
     graph_node *parent;
 }graph_node;
-
+*/
 
 /*---------------fc layer------------------*/
 typedef struct{
