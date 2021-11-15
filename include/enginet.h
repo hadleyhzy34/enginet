@@ -3,9 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#define LR 0.01
-#define EPOCHS 500
-#define BATCH_SIZE 1
+
 
 /*-------------------tensor------------------*/
 typedef struct{
@@ -26,6 +24,12 @@ void reshape_tensor(tensor *t, int* n_shape, size_t dim);
 /*tensor visualization*/
 void print_tensor(tensor t);
 
+/*---------------matrix operation------------*/
+float  gems(float *a, size_t size);
+float* gema(float *a, float *b, size_t size);
+void transpose(float *a, size_t r, size_t c);
+void print_matrix(float *a, size_t r, size_t c);
+
 /*------------------gemm--------------------*/
 void gemm(int TA, int TB, int M, int N, int K, float Alpha,
         float *A, int lda,
@@ -38,17 +42,27 @@ void gemm_nt(int M, int N, int K, float Alpha,
         float *B, int ldb,
         float *C, int ldc);
 
-/*--------------computation graph-----------*/
-/*
-typedef struct graph_node;
+#ifdef GPU
+float gems_gpu(float *a, size_t size);
+void gema_gpu(float *a, float *b, float *c, size_t size);
+void transpose_gpu(float *a, size_t r, size_t c);
+void gemm_gpu(int TA, int TB, int M, int N, int K, float Alpha,
+        float *A, int lda,
+        float *B, int ldb,
+        float Beta,
+        float *C, int ldc);
+#endif
 
-struct{
+/*--------------computation graph-----------*/
+typedef struct graph_node{
     //tensor *input;
     //tensor *output;
     void (*grad_fn)(tensor *input, tensor *output);
-    graph_node *parent;
+    struct graph_node *parent;
 }graph_node;
-*/
+
+/*------------tensor operation----------*/
+graph_node tensor_add(tensor *a, tensor *b, graph_node *parent);
 
 /*---------------fc layer------------------*/
 typedef struct{

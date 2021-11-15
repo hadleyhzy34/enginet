@@ -1,5 +1,5 @@
-GPU=0
-CUDNN=0
+GPU=1
+CUDNN=1
 OPENCV=0
 OPENMP=0
 DEBUG=0
@@ -25,8 +25,8 @@ CPP=g++
 NVCC=nvcc 
 AR=ar
 ARFLAGS=rcs
-# OPTS=-Ofast
-OPTS=-O3
+OPTS=-Ofast
+# OPTS=-O3
 LDFLAGS= -lm -pthread 
 COMMON= -Iinclude/ -Isrc/ -Isrc/core/
 CFLAGS=-Wall -Wno-unused-result -Wno-unknown-pragmas -Wfatal-errors -fPIC
@@ -62,11 +62,11 @@ endif
 
 # OBJ=matrix.o tensor.o fc_layer.o mse.o activations.o ac_layer.o bn_layer.o
 OBJ = 
-OBJ_CORE = tensor.o gemm.o
-EXECOBJA=gemm_test.o
+OBJ_CORE = tensor.o cuda.o ops.o
+EXECOBJA=basic_gpu_test.o
 ifeq ($(GPU), 1) 
 LDFLAGS+= -lstdc++ 
-OBJ+=convolutional_kernels.o deconvolutional_kernels.o activation_kernels.o im2col_kernels.o col2im_kernels.o blas_kernels.o crop_layer_kernels.o dropout_layer_kernels.o maxpool_layer_kernels.o avgpool_layer_kernels.o
+# OBJ+=convolutional_kernels.o deconvolutional_kernels.o activation_kernels.o im2col_kernels.o col2im_kernels.o blas_kernels.o crop_layer_kernels.o dropout_layer_kernels.o maxpool_layer_kernels.o avgpool_layer_kernels.o
 endif
 
 EXECOBJ = $(addprefix $(OBJDIR), $(EXECOBJA))
