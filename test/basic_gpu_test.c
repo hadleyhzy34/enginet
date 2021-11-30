@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <time.h>
 #include "enginet.h"
 
 #define LR 0.01
@@ -82,54 +83,77 @@ int main(){
     transpose_gpu(ptr_h, 2, 6);
     print_matrix(ptr_h, 6, 2);
     //gemm_gpu(1,1,4,3,3,1,ptr_f,4,ptr_one,3,0,res_f,4);
+    
+    /*------------------vector dot product--------------------*/
+    float j[] = {1,2,3,4,5};
+    float *ptr_j = j;
 
-    /* 
-    float *d_A, *d_B, *d_C;                                                         
-    cudaMalloc(&d_A, sizeof(float)*9);                      
-    cudaMalloc(&d_B, sizeof(float)*9);                      
-    cudaMalloc(&d_C, sizeof(float)*9);                      
-    cudaMemcpy(d_A,ptr_f,sizeof(float)*9,cudaMemcpyHostToDevice);
-    cudaMemcpy(d_B,ptr_one,sizeof(float)*9,cudaMemcpyHostToDevice);
-    cudaMemcpy(d_C,res_f,sizeof(float)*9,cudaMemcpyHostToDevice);
+    float k[] = {1,1,1,1,1};
+    float *ptr_k = k;
+    
+    float *res = (float*)malloc(sizeof(float));
+    res[0] = gevdp(ptr_j, ptr_k, 5);
+    printf("dot product of vector j and k is: %.5f\n", res[0]);
 
-    gemm_gpu(0,0,3,3,3,1,d_A,3,d_B,3,0,d_C,3);
-    cudaMemcpy(res_f,d_C,sizeof(float)*9,cudaMemcpyDeviceToHost);
-    print_matrix(res_f,3,3);
-    */
+    
+    size_t size = 100; 
+    float *l = (float*)malloc(size*sizeof(float));
+    for(int i=0;i<size;i++){
+        l[i] = 2.f;
+    }
 
-    /*
-    gemm_nt(3,3,3,1,ptr_f,3,ptr_one,3,res_f,3);
-    printf("\nmatrix multiplication result is: \n");
-    print_matrix(res_f,3,3);
+    float *m = (float*)malloc(size*sizeof(float));
+    for(int i=0;i<size;i++){
+        m[i] = i+1.f;
+    }
+    
+    clock_t start,end;
+    start = clock();
+    res[0] = gevdp(l,m,size);
+    end = clock();
+    printf("dot product of vectgor l and m is: %.5f\n", res[0]);
+    printf("processing time is: %.5f\n", ((float)(end - start))/CLOCKS_PER_SEC);
+    
+    float res_1;
+    start = clock();
+    res_1 = gevdp_gpu(l,m,size);
+    end = clock();
+    printf("dot product of vector l and m based on gpu is: %.5f\n", res_1);
+    printf("processing time is: %.5f\n", ((float)(end - start))/CLOCKS_PER_SEC);
 
-    float two[] = {2,0,0,0,2,0,0,0,2};
-    float *ptr_two = two;
+    float bias = 1.f;
+    start = clock();
+    geac(m,size,bias);
+    end = clock();
+    print_matrix(m,1,size);
+    printf("processing time is: %.5f\n", ((float)(end - start))/CLOCKS_PER_SEC);
 
-    gemm_nt(3,3,3,1,ptr_f,3,ptr_two,3,res_f,3);
-    printf("\nmatrix multiplication result is: \n");
-    print_matrix(res_f,3,3);
+    start = clock();
+    geac_gpu(m,size,bias);
+    end = clock();
+    print_matrix(m,1,size);
+    printf("processing time is: %.5f\n", ((float)(end - start))/CLOCKS_PER_SEC);
 
-    float h[] = {1,2,3,4,5,6,7,8,9,10,11,12};
-    float *ptr_h = h;
+    float *n = (float*)malloc(size*sizeof(float));
+    for(int i=0;i<size;i++){
+        n[i] = i+1.f;
+    }
 
-    float *res_h = (float*)calloc(12, sizeof(float));
-    gemm_nt(4,3,3,1,ptr_h,3,ptr_one,3,res_h,3);
-    printf("\nmatrix multiplication result is: \n");
-    print_matrix(res_h,4,3);
+    float scalar = 2.f;
+    start = clock();
+    gemc(n,size,scalar);
+    end = clock();
+    print_matrix(n,1,size);
+    printf("processing time is: %.5f\n", ((float)(end - start))/CLOCKS_PER_SEC);
 
-    gemm_nt(4,3,3,1,ptr_h,3,ptr_two,3,res_h,3);
-    printf("\nmatrix multiplication result is: \n");
-    print_matrix(res_h,4,3);
-    */
+    start = clock();
+    gemc_gpu(n,size,scalar);
+    end = clock();
+    print_matrix(n,1,size);
+    printf("processing time is: %.5f\n", ((float)(end - start))/CLOCKS_PER_SEC);
 
-    /*------test for gemm-----*/
 
-    /*
-    printf("gemm test: \n");
-    float *res_i = (float*)calloc(12,sizeof(float));
-    gemm(0,1,4,3,3,1,ptr_h,3,ptr_two,3,0,res_i,3);
-    print_matrix(res_i,4,3);
-    */
+
 
     return 0;
 }

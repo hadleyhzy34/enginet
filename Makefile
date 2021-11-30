@@ -1,7 +1,7 @@
 GPU=1
 CUDNN=1
 OPENCV=0
-OPENMP=0
+OPENMP=1
 DEBUG=0
 
 ARCH= -gencode arch=compute_30,code=sm_30 \
@@ -25,14 +25,15 @@ CPP=g++
 NVCC=nvcc 
 AR=ar
 ARFLAGS=rcs
-OPTS=-Ofast
-# OPTS=-O3
+# OPTS=-Ofast
+OPTS=-O3
 LDFLAGS= -lm -pthread 
 COMMON= -Iinclude/ -Isrc/ -Isrc/core/
 CFLAGS=-Wall -Wno-unused-result -Wno-unknown-pragmas -Wfatal-errors -fPIC
 
 ifeq ($(OPENMP), 1) 
 CFLAGS+= -fopenmp
+COMMON+= -DOPENMP
 endif
 
 ifeq ($(DEBUG), 1) 

@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include "cuda.h"
+#include "cuda_runtime_api.h"
+#include "cuda.h"
 #include "cublas_v2.h"
 #include "ops.h"
 
@@ -48,6 +49,91 @@ void transpose(float *a, size_t r, size_t c)
     }
     memcpy(a, temp, r*c*sizeof(float));
     free(temp);
+}
+
+/*-----------vector dot product-----------------*/
+float gevdp(float *a, float *b, size_t size)
+{
+    float data = 0;
+    int i;
+
+#ifdef OPENMP
+    size_t N = omp_get_max_threads();
+    //printf("maximum number of threads is: %ld\n", N);
+    
+    /* 
+    float *temp = (float*)calloc(N, sizeof(float)); 
+    
+    #pragma omp parallel
+    {
+        int id = omp_get_thread_num();
+        #pragma omp parallel for
+        for(i=id; i<size; i+=N){
+            temp[id] += a[i] * b[i];
+        }
+    }
+
+    for(i = 0; i < N; i++){
+        data += temp[i];
+    }
+    */ 
+    
+    float *temp = (float*)calloc(size, sizeof(float));
+    #pragma omp parallel
+    {
+        #pragma omp for
+        for(i=0; i<size; i++){
+            temp[i] = a[i] * b[i];
+        }
+    }
+    for(i = 0; i < size; i++){
+        data += temp[i];
+    }
+    return data;
+#endif
+    
+    for(i=0; i<size;i++){
+        data += a[i] * b[i];
+    }    
+    return data;
+}
+
+/*-----------general matrix added with constant value----------*/
+void geac(float *a, size_t size, float b){
+    int i;
+#ifdef OPENMP
+    #pragma omp parallel
+    {
+        #pragma omp for
+        for(i = 0; i < size; i++){
+            a[i] += b;
+        }
+    }
+#else
+    for(i = 0; i < size; i++){
+        a[i] += b;
+    }
+    //printf("this part is processed");
+#endif
+}
+
+/*-----------general matrix multiplied with constant scalar------------*/
+void gemc(float *a, size_t size, float scalar)
+{
+    int i;
+#ifdef OPENMP
+    #pragma omp parallel
+    {
+        #pragma omp for
+        for(i = 0; i < size; i++){
+            a[i] *= scalar;
+        }
+    }
+#else
+    for(i = 0; i < size; i++){
+        a[i] *= scalar;
+    }
+#endif
 }
 
 /*-----------general matrix multiplicaton-------*/
@@ -243,6 +329,98 @@ void transpose_gpu(float *a, size_t r, size_t c)
     cudaMemcpy(a,d_A,sizeof(float)*r*c,cudaMemcpyDeviceToHost);
     cudaFree(d_A);
     cudaFree(d_B);
+    cublasDestroy(handle);
+}
+
+/*-----------------vector dot product---------------*/
+float gevdp_gpu(float *a, float *b, size_t size)
+{
+    cublasHandle_t handle;
+    cublasCreate(&handle);
+     
+    float *d_A, *d_B;
+    cudaMalloc(&d_A, sizeof(float)*size);
+    cudaMalloc(&d_B, sizeof(float)*size);
+    cudaMemcpy(d_A,a,sizeof(float)*size,cudaMemcpyHostToDevice);
+    cudaMemcpy(d_B,b,sizeof(float)*size,cudaMemcpyHostToDevice);
+    
+    float result;
+   
+    cublasSdot(handle, size, d_A, 1, d_B, 1, &result);
+    cudaDeviceSynchronize();
+
+    cudaFree(d_A);
+    cudaFree(d_B);
+    cublasDestroy(handle);
+    printf("current result value is: %.5f\n",result);
+
+    return result;
+}
+
+/*---------matrix added with constant value-----------*/
+void geac_gpu(float *a, size_t size, float b)
+{
+    cublasHandle_t handle;
+    cublasCreate(&handle);
+     
+    float *d_A;
+    cudaMalloc(&d_A, sizeof(float)*size);
+    cudaMemcpy(d_A,a,sizeof(float)*size,cudaMemcpyHostToDevice);
+    
+    //generating unit vector 
+    const unsigned int one_bits = 1;
+    //const int* one_bits = reinterpret_cast<const int*>(&one);
+    //cudaMemset(d_I, 0x12, size);    
+    unsigned int pBuffer;
+    cuMemAlloc(&pBuffer, sizeof(unsigned int) * size);
+    cuMemsetD32(pBuffer, 1, size);
+
+
+    int *d_I;
+    cudaMalloc(&d_I, sizeof(int)*size);
+    int *I = (int*)malloc(size*sizeof(int));
+
+    cudaMemcpy(I, pBuffer, sizeof(int)*size,cudaMemcpyDeviceToHost);
+    print_matrix(I,1,size);
+
+    cuMemsetD32(d_I,0x1,size);
+    cudaMemcpy(I,d_I,sizeof(float)*size,cudaMemcpyDeviceToHost);
+    printf("unit vector is: \n");
+    print_matrix(I,1,size);
+    
+    printf("////////////////////////////////\n"); 
+    cublasSaxpy(handle, size, &b, d_I, 1, d_A, 1);
+
+    cudaMemcpy(a,d_A,size*sizeof(float),cudaMemcpyDeviceToHost);
+
+    cudaFree(d_A);
+    cudaFree(d_I);
+    cublasDestroy(handle);
+}
+
+void gemc_gpu(float *a, size_t size, float scalar)
+{
+    /*
+        overwrite value to d_zeros instead of a
+    */
+    cublasHandle_t handle;
+    cublasCreate(&handle);
+     
+    float *d_A;
+    cudaMalloc(&d_A, sizeof(float)*size);
+    cudaMemcpy(d_A,a,sizeof(float)*size,cudaMemcpyHostToDevice);
+    
+    float *zeros = (float*)calloc(size, sizeof(float));
+    float *d_zeros;
+    cudaMalloc(&d_zeros, size * sizeof(float));
+    cudaMemcpy(d_zeros,zeros, size * sizeof(float), cudaMemcpyHostToDevice);
+    
+    cublasSaxpy(handle, size, &scalar, d_A, 1, d_zeros,1);
+    cudaDeviceSynchronize();
+    
+    cudaMemcpy(a, d_zeros, size * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaFree(d_A);
+    cudaFree(d_zeros);
     cublasDestroy(handle);
 }
 #endif
