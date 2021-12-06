@@ -45,6 +45,15 @@ void gemm_nt(int M, int N, int K, float Alpha,
         float *B, int ldb,
         float *C, int ldc);
 
+#ifdef NEON
+float gems_arm(float *a, size_t size);
+void transpose_arm(float *a, size_t r, size_t c);
+float gevdp_arm(float *a, float *b, size_t size);
+float* gema_arm(float *a, float *b, size_t size);
+void geac_arm(float *a, size_t size, float b);
+void gemc_arm(float *a, size_t size, float scalar);
+#endif
+
 #ifdef GPU
 float gems_gpu(float *a, size_t size);
 void gema_gpu(float *a, float *b, float *c, size_t size);

@@ -1,7 +1,8 @@
-GPU=1
-CUDNN=1
+GPU=0
+CUDNN=0
 OPENCV=0
-OPENMP=1
+OPENMP=0
+NEON=1
 DEBUG=0
 
 ARCH= -gencode arch=compute_30,code=sm_30 \
@@ -36,6 +37,11 @@ CFLAGS+= -fopenmp
 COMMON+= -DOPENMP
 endif
 
+ifeq ($(NEON), 1) 
+COMMON+= -DNEON
+COMMON+= -mfpu=neon
+endif
+
 ifeq ($(DEBUG), 1) 
 OPTS=-O0 -g
 endif
@@ -63,8 +69,9 @@ endif
 
 # OBJ=matrix.o tensor.o fc_layer.o mse.o activations.o ac_layer.o bn_layer.o
 OBJ = 
-OBJ_CORE = tensor.o cuda.o ops.o
-EXECOBJA=basic_gpu_test.o
+# OBJ_CORE = tensor.o cuda.o ops.o
+OBJ_CORE = tensor.o ops.o
+EXECOBJA=basic_neon_test.o
 ifeq ($(GPU), 1) 
 LDFLAGS+= -lstdc++ 
 # OBJ+=convolutional_kernels.o deconvolutional_kernels.o activation_kernels.o im2col_kernels.o col2im_kernels.o blas_kernels.o crop_layer_kernels.o dropout_layer_kernels.o maxpool_layer_kernels.o avgpool_layer_kernels.o

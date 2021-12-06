@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+/*
 #include "cuda_runtime_api.h"
 #include "cuda.h"
 #include "cublas_v2.h"
+*/
 #include "ops.h"
 
 #define SWAP(a,b) {float temp=0;temp=a;a=b;b=temp;}
@@ -194,6 +196,9 @@ void print_matrix(float *a, size_t r, size_t c){
 }
 
 #ifdef GPU
+#include "cuda_runtime_api.h"
+#include "cuda.h"
+#include "cublas_v2.h"
 #include <math.h>
 
 void gemm_gpu(int TA, int TB, int M, int N, int K, float Alpha,
@@ -422,5 +427,155 @@ void gemc_gpu(float *a, size_t size, float scalar)
     cudaFree(d_A);
     cudaFree(d_zeros);
     cublasDestroy(handle);
+}
+#endif
+
+#ifdef NEON
+#include <arm_neon.h>
+
+float gems_arm(float *arr, size_t size){
+    if(arr == NULL || size < 1)
+    {
+           //  printf("input error\n");
+            return 0;
+    }
+   
+    int dim4 = size >> 2; // size//4
+    int left4 = size & 3; // size & 4    1000(8) & 0011(3) = 0001(1)
+
+    float32x4_t sum_vec = vdupq_n_f32(0.f); //initialize accumulative register for temporarily store
+    for(; dim4 > 0; dim4--, arr+=4)
+    {
+            float32x4_t data_vec = vld1q_f32(arr); //temporarily store 4 elements into data_vec
+            sum_vec = vaddq_f32(sum_vec, data_vec); //sum_vec = sum_vec + data_vec
+    }
+    //put all elements inside sum_vec register into final value
+    float sum = vgetq_lane_f32(sum_vec, 0) + vgetq_lane_f32(sum_vec, 1) + vgetq_lane_f32(sum_vec, 2) + vgetq_lane_f32(sum_vec, 3);
+   
+    for(; left4>0; left4--, arr++)
+            sum += (*arr);
+   
+    return sum;
+}
+
+float gevdp_arm(float *a, float *b, size_t size)
+{
+    if(a == NULL || b == NULL || size < 1)
+    {
+        return 0;
+    }
+    
+    int dim4 = size>>2;   // size//4
+    int left4 = size & 3; // size %4    
+
+    float32x4_t sum_vec = vdupq_n_f32(0.f); //initialize accumulative register for temporarily store
+    float32x4_t a_vec, b_vec; //store every four float number in these two registers for a and b
+    for(; dim4 > 0; dim4--, a+=4, b+=4)
+    {
+        a_vec = vld1q_f32(a); //temporarily store 4 elements into data_vec
+        b_vec = vld1q_f32(b);
+        sum_vec = vmlaq_f32(sum_vec, a_vec, b_vec); //sum_vec = sum_vec + a_vec * b_vec
+    }
+    //put all elements inside sum_vec register into final value
+    //printf("current first output is: %.5f",vgetq_lane_f32(sum_vec, 0));
+    float sum = vgetq_lane_f32(sum_vec, 0) + vgetq_lane_f32(sum_vec, 1) + vgetq_lane_f32(sum_vec, 2) + vgetq_lane_f32(sum_vec, 3);
+   
+    for(; left4>0; left4--, a++, b++)
+            sum += ((*a)*(*b));
+    return sum;
+}
+
+float* gema_arm(float *a, float *b, size_t size){
+    if(a == NULL || b == NULL || size < 1)
+    {
+        printf("input error");
+        return 0;
+    }
+   
+    int dim4 = size >> 2; // size//4
+    int left4 = size & 3; // size & 4    1000(8) & 0011(3) = 0001(1)
+    
+    float *res = (float*)malloc(size*sizeof(float));
+    float32x4_t sum_vec = vdupq_n_f32(0.f); //initialize accumulative register for temporarily store
+    float32x4_t a_vec, b_vec;
+    for(int i = 0; i+4 <= size; i+=4, a+=4, b+=4)
+    {
+        a_vec = vld1q_f32(a); //temporarily store 4 elements into data_vec
+        b_vec = vld1q_f32(b);
+        sum_vec = vaddq_f32(a_vec,b_vec);
+        res[i]   = vgetq_lane_f32(sum_vec, 0);
+        res[i+1] = vgetq_lane_f32(sum_vec, 1); 
+        res[i+2] = vgetq_lane_f32(sum_vec, 2);
+        res[i+3] = vgetq_lane_f32(sum_vec, 3);
+    }
+   
+    for(; left4>0; left4--, a++, b++)
+        res[size-left4] = *a + *b;
+   
+    return res;
+}
+
+void transpose_arm(float *a, size_t r, size_t c){
+    /*
+        Args:
+            r: original rows
+            c: original columns
+        return:
+            inplace transpose matrix a
+    */
+    register float *temp = (float*)calloc(r*c, sizeof(float));
+    int i,j;
+    for(i=0;i<r;i++){
+        for(j=0;j<c;j++){
+            temp[j*r + i] = a[i*c + j];
+            //printf("%ld: %f\n", j*r+i, temp[j*r + i]);
+        }
+    }
+    memcpy(a, temp, r*c*sizeof(float));
+    free(temp);
+}
+
+void geac_arm(float *a, size_t size, float b){
+    if(a == NULL || size < 1)
+    {
+        return;
+    }
+    
+    int dim4 = size>>2;   // size//4
+    int left4 = size & 3; // size %4    
+    
+    float32x4_t bias_vec = vdupq_n_f32(b);
+    float32x4_t temp_vec;
+    for(; dim4 > 0; dim4--, a+=4)
+    {
+        temp_vec = vld1q_f32(a);
+        temp_vec = vaddq_f32(temp_vec, bias_vec);
+        vst1q_f32(a, temp_vec);
+    }
+    
+    for(; left4>0; left4--,a++)
+        *a = b+(*a);
+}
+
+void gemc_arm(float *a, size_t size, float scalar){
+    if(a == NULL || size < 1)
+    {
+        return;
+    }
+    
+    int dim4 = size>>2;   // size//4
+    int left4 = size & 3; // size %4    
+    
+    float32x4_t scalar_vec = vdupq_n_f32(scalar);
+    float32x4_t temp_vec;
+    for(; dim4 > 0; dim4--, a+=4)
+    {
+        temp_vec = vld1q_f32(a);
+        temp_vec = vmulq_f32(temp_vec, scalar_vec);
+        vst1q_f32(a, temp_vec);
+    }
+    
+    for(; left4>0; left4--,a++)
+        *a = scalar*(*a);
 }
 #endif
